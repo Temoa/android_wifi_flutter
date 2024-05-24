@@ -8,6 +8,7 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -23,18 +24,31 @@ class AndroidWifiFlutterPlugin : FlutterPlugin, MethodCallHandler {
   private lateinit var wifiManager: WifiManager
   private lateinit var connectivityManager: ConnectivityManager
 
+  private lateinit var wiFiEnabledEventChannel: EventChannel
+  private var wiFiEnabledStreamHandler: WiFiEnabledStreamHandler? = null
+
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.redbox.iot.app/android_wifi_flutter")
     channel.setMethodCallHandler(this)
+
+    wiFiEnabledEventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "redbox.iot.app/android_wifi_flutter/wifi/enabled")
 
     context = flutterPluginBinding.applicationContext;
 
     wifiManager = (flutterPluginBinding.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
     connectivityManager = (flutterPluginBinding.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
+
+    wiFiEnabledStreamHandler = WiFiEnabledStreamHandler(
+      context,
+      onChange = { eventSink, wifiEnable -> eventSink.success(wifiEnable) },
+    )
+    wiFiEnabledEventChannel.setStreamHandler(wiFiEnabledStreamHandler)
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
+    wiFiEnabledStreamHandler = null
+    wiFiEnabledEventChannel.setStreamHandler(null)
   }
 
   @Suppress("DEPRECATION")

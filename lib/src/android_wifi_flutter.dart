@@ -12,6 +12,11 @@ class AndroidWifiFlutter {
   static const pluginMethodChannelName = 'com.redbox.iot.app/android_wifi_flutter';
   static const pluginMethodChannel = MethodChannel(pluginMethodChannelName);
 
+  static const pluginEventChannelWiFiEnabledName = 'redbox.iot.app/android_wifi_flutter/wifi/enabled';
+  static const pluginEventChannelWiFiEnabled = EventChannel(pluginEventChannelWiFiEnabledName);
+
+  Stream<bool>? _onWiFiEnabled;
+
   Future<ActiveWifiNetwork> getActiveWifiInfo() async {
     Map<dynamic, dynamic> result = await pluginMethodChannel.invokeMethod("getWifiInfo");
     ActiveWifiNetwork activeWifiNetwork = ActiveWifiNetwork.fromMap(result);
@@ -46,5 +51,10 @@ class AndroidWifiFlutter {
     List<dynamic> result = await pluginMethodChannel.invokeMethod("getConfiguredWiFis");
     List<ConfiguredWiFi> list = result.map((e) => ConfiguredWiFi.fromMap(e)).toList();
     return list;
+  }
+
+  Stream<bool> get onWiFiEnabled {
+    _onWiFiEnabled ??= pluginEventChannelWiFiEnabled.receiveBroadcastStream().cast<bool>();
+    return _onWiFiEnabled!;
   }
 }
