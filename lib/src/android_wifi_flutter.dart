@@ -57,4 +57,8 @@ class AndroidWifiFlutter {
     _onWiFiEnabled ??= pluginEventChannelWiFiEnabled.receiveBroadcastStream().cast<bool>();
     return _onWiFiEnabled!;
   }
+
+  Future<bool> forgotWiFi(String ssid) async {
+    return await pluginMethodChannel.invokeMethod("forgotWiFi", {"ssid": ssid});
+  }
 }

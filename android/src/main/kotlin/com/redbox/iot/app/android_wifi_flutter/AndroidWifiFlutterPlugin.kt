@@ -76,6 +76,11 @@ class AndroidWifiFlutterPlugin : FlutterPlugin, MethodCallHandler {
 
       "getConfiguredWiFis" -> result.success(getConfiguredWiFis())
 
+      "forgotWiFi" -> {
+        val ssid = call.argument<String>("ssid")!!
+        forgotWiFi(ssid, result)
+      }
+
       else -> {
         result.notImplemented()
       }
@@ -228,6 +233,23 @@ class AndroidWifiFlutterPlugin : FlutterPlugin, MethodCallHandler {
       else -> {
         WifiCapability.WIFI_CIPHER_NO_PASS
       }
+    }
+  }
+
+  @SuppressLint("MissingPermission")
+  private fun forgotWiFi(ssid: String, result: Result) {
+    try {
+      val config = wifiManager.configuredNetworks.firstOrNull { it.SSID.replace("\"", "") == ssid }
+      if (config != null) {
+        wifiManager.disableNetwork(config.networkId)
+        wifiManager.removeNetwork(config.networkId)
+        wifiManager.saveConfiguration()
+        result.success(true)
+      } else {
+        result.success(false)
+      }
+    } catch (e: Exception) {
+      result.success(false)
     }
   }
 }
